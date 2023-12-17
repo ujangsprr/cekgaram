@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5">
+	<meta name="author" content="AdminKit">
+	<meta name="keywords" content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
+
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="shortcut icon" href="img/icons/icon-48x48.png" />
+
+	<link rel="canonical" href="https://demo-basic.adminkit.io/" />
+
+	<title>Kualitas Garam History</title>
+
+	<!-- <link href="css/app.css" rel="stylesheet"> -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+	<div class="wrapper">
+		<nav id="sidebar" class="sidebar js-sidebar">
+			<div class="sidebar-content js-simplebar">
+				<a class="sidebar-brand" href="index">
+          <span class="align-middle">CEK GARAM</span>
+        </a>
+
+				<ul class="sidebar-nav">
+					<li class="sidebar-header">
+						Halaman
+					</li>
+
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="/dashboard">
+							<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Dashboard</span>
+						</a>
+					</li>
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="/history">
+							<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">History</span>
+						</a>
+					</li>
+                    <li class="sidebar-item active">
+						<a class="sidebar-link" href="/documentation">
+							<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">API Documentation</span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+
+		<div class="main">
+			<nav class="navbar navbar-expand navbar-light navbar-bg">
+				<a class="sidebar-toggle js-sidebar-toggle">
+          <i class="hamburger align-self-center"></i>
+        </a>
+
+				<div class="navbar-collapse collapse">
+					<ul class="navbar-nav navbar-align">
+						<li class="nav-item dropdown">
+							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
+								<i class="align-middle" data-feather="settings"></i>
+							</a>
+
+							<a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
+								<img src="{{ url_for('static', filename='img/avatars/budi.jpg') }}" class="avatar img-fluid rounded me-1" alt="{{ user_data[1] }}" /> <span class="text-dark">{{ user_data[1] }}</span>
+							</a>
+							<div class="dropdown-menu dropdown-menu-end">								
+								<a class="dropdown-item" href="{{ url_for('logout') }}">Log out</a>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</nav>
+
+			<!-- <main class="content">
+				<div class="container-fluid p-0">
+
+					<h1 class="h3 mb-3"><strong>API</strong> Documentation</h1>
+
+					
+			</main> -->
+
+            <main class="content">
+                <div class="container-fluid p-0">
+
+                    <h1 class="h3 mb-3"><strong>API</strong> Documentation</h1>
+
+                    <!-- API Documentation Section -->
+                    <div class="api-documentation mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                Endpoint: <code>/add_garam</code>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">Description</h5>
+                                <p class="card-text">This endpoint is used to add salt quality data to the database.</p>
+                                
+                                <h5 class="card-title">Request Method</h5>
+                                <p><code>POST</code></p>
+
+                                <h5 class="card-title">Request URL</h5>
+                                <p><code>https://cekgaram.aisoru.id/add_garam</code></p>
+
+                                <h5 class="card-title">Request Body</h5>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Field</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>id_petani</code></td>
+                                            <td>Number</td>
+                                            <td>ID of the farmer</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>kadar_air</code></td>
+                                            <td>Number</td>
+                                            <td>Moisture content</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>kadar_garam</code></td>
+                                            <td>Number</td>
+                                            <td>Salt content</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <h5 class="card-title">Example Usage</h5>
+                                
+                                <!-- Python Example -->
+                                <div class="mb-3">
+                                    <h6>Python</h6>
+                                    <pre><code class="language-python">import requests
+
+url = "https://cekgaram.aisoru.id/add_garam"
+data = {
+    "id_petani": {{ user_data[0] }},
+    "kadar_air": 10.5,
+    "kadar_garam": 15.3
+}
+
+response = requests.post(url, json=data)
+print(response.text)
+                                    </code></pre>
+                                </div>
+
+                                <!-- JavaScript Example -->
+                                <div class="mb-3">
+                                    <h6>JavaScript</h6>
+                                    <pre><code class="language-js">const url = "https://cekgaram.aisoru.id/add_garam";
+const data = {
+    id_petani: {{ user_data[0] }},
+    kadar_air: 10.5,
+    kadar_garam: 15.3
+};
+
+fetch(url, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch((error) => console.error('Error:', error));
+                                    </code></pre>
+                                </div>
+
+                                <!-- Java Example -->
+                                <div class="mb-3">
+                                    <h6>Java</h6>
+                                    <pre><code class="language-java">URL url = new URL("http://[alamat_server]/add_garam");
+HttpURLConnection con = (HttpURLConnection) url.openConnection();
+con.setRequestMethod("POST");
+con.setRequestProperty("Content-Type", "application/json; utf-8");
+con.setRequestProperty("Accept", "application/json");
+con.setDoOutput(true);
+
+String jsonInputString = "{\"id_petani\": {{ user_data[0] }}, \"kadar_air\": 10.5, \"kadar_garam\": 15.3}";
+
+try(OutputStream os = con.getOutputStream()) {
+    byte[] input = jsonInputString.getBytes("utf-8");
+    os.write(input, 0, input.length);           
+}
+
+try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
+    StringBuilder response = new StringBuilder();
+    String responseLine = null;
+    while ((responseLine = br.readLine()) != null) {
+        response.append(responseLine.trim());
+    }
+    System.out.println(response.toString());
+}
+                                    </code></pre>
+                                </div>
+
+                                <!-- Arduino/ESP32 Example -->
+                                <div class="mb-3">
+                                    <h6>Arduino/ESP32</h6>
+                                    <pre><code class="language-cpp">#include <WiFi.h>
+#include <HTTPClient.h>
+
+const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        Serial.println("Connecting to WiFi...");
+    }
+
+    HTTPClient http;
+    http.begin("https://cekgaram.aisoru.id/add_garam");
+    http.addHeader("Content-Type", "application/json");
+
+    String postData = "{\"id_petani\":{{ user_data[0] }},\"kadar_air\":10.5,\"kadar_garam\":15.3}";
+    int httpResponseCode = http.POST(postData);
+
+    if (httpResponseCode>0) {
+        String response = http.getString();
+        Serial.println(httpResponseCode);
+        Serial.println(response);
+    }
+    else {
+        Serial.print("Error on sending POST: ");
+        Serial.println(httpResponseCode);
+    }
+
+    http.end();
+}
+
+void loop() {
+    // Empty loop
+}
+                                    </code></pre>
+                                </div>
+                                <!-- ... Add more examples for JavaScript, Java, and Arduino/ESP32 ... -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ... your existing content ... -->
+                </div>
+            </main>
+
+			<footer class="footer">
+				<div class="container-fluid">
+					<div class="row text-muted">
+					</div>
+				</div>
+			</footer>
+		</div>
+	</div>
+
+	<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+</body>
+
+</html>
