@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+import hashlib
 import mysql.connector
 from mysql.connector import Error
 import joblib
@@ -15,7 +16,7 @@ model = joblib.load('model/knn_model.joblib')
 # Konfigurasi database
 db_config = {
     'host': 'localhost',
-    'database': 'newgaram',
+    'database': 'garam',
     'user': 'root',
     'password': ''
 }
@@ -50,13 +51,17 @@ def register():
     if request.method == "POST":
         name = request.form['name']
         email = request.form['email']
-        password = request.form['password']  # Password hashing should be used in production
+        password = request.form['password']
+        
+         # Encrypt the password using MD5
+        hashed_password = hashlib.md5(password.encode()).hexdigest()
+
         conn = create_db_connection()
         if conn:
             cursor = conn.cursor()
-            query = "INSERT INTO pengguna (nama, email, password) VALUES (%s, %s, %s)"
+            query = "INSERT INTO user (nama, email, password) VALUES (%s, %s, %s)"
             try:
-                cursor.execute(query, (name, email, password))
+                cursor.execute(query, (name, email, hashed_password))
                 conn.commit()
             except Error as e:
                 flash(f"Error: {e}", 'error')
@@ -73,16 +78,22 @@ def register():
 def login():
     if request.method == "POST":
         email = request.form['email']
-        password = request.form['password']  # Password hashing should be used in production
+        password = request.form['password']
+        hashed_password = hashlib.md5(password.encode()).hexdigest()
+
         try:
             conn = create_db_connection()
             with conn.cursor(buffered=True) as cursor:
-                query = "SELECT * FROM pengguna WHERE email = %s AND password = %s"
-                cursor.execute(query, (email, password))
+                query = "SELECT id_user, password, role FROM user WHERE email = %s"
+                cursor.execute(query, (email,))
                 user = cursor.fetchone()
-                if user:
-                    session['user_id'] = user[0]  # Assuming the first column is user_id
-                    return redirect(url_for('dashboard'))
+                if user and user[1] == hashed_password:
+                    session['user_id'] = user[0]  # id_user
+                    session['role'] = user[2]    # role
+                    if user[2] == 'admin':
+                        return redirect(url_for('admin_dashboard'))
+                    else:
+                        return redirect(url_for('dashboard'))
                 else:
                     flash("Login failed. Please check your credentials.", 'error')
         except Error as e:
@@ -103,7 +114,7 @@ def logout():
 @app.route('/add_garam', methods=['POST'])
 def add_tambak():
     data = request.get_json()
-    id_petani = data['id_petani']
+    id_user = data['id_user']
     kadar_air = data['kadar_air']
     kadar_garam = data['kadar_garam']
 
@@ -113,8 +124,8 @@ def add_tambak():
             cursor = conn.cursor()
             
             # Menyimpan data ke tabel garam
-            query_garam = "INSERT INTO garam (id_petani, kadar_air, kadar_garam) VALUES (%s, %s, %s)"
-            cursor.execute(query_garam, (id_petani, kadar_air, kadar_garam))
+            query_garam = "INSERT INTO garam (id_user, kadar_air, kadar_garam) VALUES (%s, %s, %s)"
+            cursor.execute(query_garam, (id_user, kadar_air, kadar_garam))
             id_garam = cursor.lastrowid  # Mengambil ID garam yang baru dibuat
 
             # Menghitung KNN
@@ -146,17 +157,28 @@ def dashboard():
     if conn:
         try:
             cursor = conn.cursor()
-            # Pertama, mengambil data pengguna
-            query_user = "SELECT * FROM pengguna WHERE id_petani = %s"
+            # Pertama, mengambil data user
+            query_user = "SELECT * FROM user WHERE id_user = %s"
             cursor.execute(query_user, (user_id,))
             user_data = cursor.fetchone()
 
             if not user_data:
                 flash('Error retrieving user data', 'error')
                 return redirect(url_for('login'))
+            
+            # Check the user's role
+            if user_data[4] == 'admin':
+                return redirect(url_for('admin_dashboard'))  # Redirect to the admin dashboard
 
-            query_garam = "SELECT * FROM garam WHERE id_petani = %s ORDER BY timestamp DESC LIMIT 1"
-            cursor.execute(query_garam, (user_id,))
+            # Query untuk mendapatkan semua ID garam yang dimiliki oleh petani
+            query_garam_ids = "SELECT id_garam FROM garam WHERE id_user = %s"
+            cursor.execute(query_garam_ids, (user_id,))
+            garam_ids = cursor.fetchall()  # This will be a list of tuples
+
+            selected_garam_id = request.form.get('selected_garam_id') if request.method == 'POST' else garam_ids[0][0]
+
+            query_garam = "SELECT * FROM garam_values WHERE id_garam = %s ORDER BY timestamp DESC LIMIT 1"
+            cursor.execute(query_garam, (selected_garam_id,))
             garam_data = cursor.fetchone()
 
             if not garam_data:
@@ -165,7 +187,7 @@ def dashboard():
             garam_id = garam_data[0]
 
             query_hasil = "SELECT * FROM hasil WHERE id_garam = %s"
-            cursor.execute(query_hasil, (garam_id,))
+            cursor.execute(query_hasil, (selected_garam_id,))
             hasil_data = cursor.fetchone()
 
             if not hasil_data:
@@ -178,11 +200,21 @@ def dashboard():
             if conn.is_connected():
                 conn.close()
 
-        # Mengirim data pengguna dan data dashboard ke template
-        return render_template("dashboard.html", user_data=user_data, garam_data=garam_data, hasil_data=hasil_data)
+        # Mengirim data user dan data dashboard ke template
+        return render_template("dashboard.html", user_data=user_data, garam_data=garam_data, hasil_data=hasil_data, garam_ids=garam_ids)
 
     flash('Error establishing database connection', 'error')
     return redirect(url_for('login'))
+
+@app.route('/process-selected-garam', methods=['POST'])
+def process_selected_garam():
+    data = request.json
+    selected_garam_id = data.get('selectedGaramId')
+
+    # Process the selected_garam_id
+    # For example, retrieve relevant data from database
+
+    return jsonify({'message': 'Data processed successfully', 'selectedGaramId': selected_garam_id})
 
 @app.route("/history")
 def history():
@@ -194,7 +226,7 @@ def history():
     if conn:
         try:
             cursor = conn.cursor()
-            query_user = "SELECT * FROM pengguna WHERE id_petani = %s"
+            query_user = "SELECT * FROM user WHERE id_user = %s"
             cursor.execute(query_user, (user_id,))
             user_data = cursor.fetchone()
 
@@ -207,7 +239,7 @@ def history():
                 SELECT g.*, h.*
                 FROM garam AS g
                 INNER JOIN hasil AS h ON g.id_garam = h.id_garam
-                WHERE g.id_petani = %s
+                WHERE g.id_user = %s
                 ORDER BY g.timestamp DESC;
             """
             cursor.execute(query, (user_id,))
@@ -238,7 +270,7 @@ def documentation():
     if conn:
         try:
             cursor = conn.cursor()
-            query_user = "SELECT * FROM pengguna WHERE id_petani = %s"
+            query_user = "SELECT * FROM user WHERE id_user = %s"
             cursor.execute(query_user, (user_id,))
             user_data = cursor.fetchone()
 
@@ -261,6 +293,19 @@ def documentation():
 @app.route("/")
 @app.route("/index")
 def index():
+    return render_template("index.html")
+
+@app.route("/admin")
+@app.route("/admin/index")
+def admin():
+    return render_template("index.html")
+
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    return render_template("index.html")
+
+@app.route("/admin/user")
+def admin_user():
     return render_template("index.html")
 
 if __name__ == "__main__":
